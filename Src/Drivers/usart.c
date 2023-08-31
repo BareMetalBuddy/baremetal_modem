@@ -1,7 +1,7 @@
 #include "usart.h"
 
 
-void usart_init(USART_Handler_t *usart_handler,uint32_t base_address,uint16_t baudrate, uint8_t parity, uint8_t usart_mode, uint8_t data_bit, uint8_t stop_bit)
+void usart_init(USART_Handler_t *usart_handler,uint32_t base_address,uint32_t baudrate, uint8_t parity, uint8_t usart_mode, uint8_t data_bit, uint8_t stop_bit)
 {
 	usart_handler->usart = (USART_Reg_t*)base_address;
 	usart_handler->baudrate   = baudrate;

@@ -2,10 +2,10 @@
 #define BSP_H_
 
 #define SYSTEM_CLOCK 					(8000000)
-#define BAUDRATE 						(38400)
+#define BAUDRATE 						(115200)
 #define TIM2_PRESCALER_VALUE_FOR_100MS 	(31999)
 #define TIM2_RELOAD_VALUE_FOR_100MS 	(24)
-#define SERIAL_BUFFER_SIZE 				(64)
+#define SERIAL_BUFFER_SIZE 				(96)
 
 #define SERIAL_PORT_1 0
 #define SERIAL_PORT_2 1
@@ -16,6 +16,8 @@
 #define GPIO_PORT_D 6
 #define BASIC_TIMER_6 7
 #define BASIC_TIMER_7 8
+
+#define RESET 0
 
 
 
