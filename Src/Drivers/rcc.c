@@ -28,6 +28,14 @@ void rcc_enable_clock(uint8_t module)
 			RCC_GPIOC_CLOCK_ENABLE();
 			break;
 
+		case ADC1:
+			ADC1_CLOCK_ENABLE();
+			break;
+
+		case ADC2:
+			ADC2_CLOCK_ENABLE();
+			break;
+
 		default:
 			break;
 	}

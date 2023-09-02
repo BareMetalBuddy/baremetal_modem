@@ -1,6 +1,8 @@
 #ifndef BSP_H_
 #define BSP_H_
 
+/*We are using a OLIMEXINO-STM32 board: https://www.olimex.com/Products/Duino/STM32/OLIMEXINO-STM32/open-source-hardware*/
+
 #define SYSTEM_CLOCK 					(8000000)
 #define BAUDRATE 						(115200)
 #define TIM2_PRESCALER_VALUE_FOR_100MS 	(31999)
@@ -16,7 +18,8 @@
 #define GPIO_PORT_D 6
 #define BASIC_TIMER_6 7
 #define BASIC_TIMER_7 8
-
+#define ADC1 9
+#define ADC2 10
 #define RESET 0
 
 

@@ -32,6 +32,10 @@
 #define RCC_I2C1_CLOCK_ENABLE() (*((uint32_t*)RCC_APB1ENR) |=(1<<21))
 #define RCC_I2C2_CLOCK_ENABLE() (*((uint32_t*)RCC_APB1ENR) |=(1<<22))
 
+// ADC1, ADC2 and ADC3 bus enable clock
+#define ADC1_CLOCK_ENABLE()     (*((uint32_t*)RCC_APB2ENR) |=(1<<9))
+#define ADC2_CLOCK_ENABLE()     (*((uint32_t*)RCC_APB2ENR) |=(1<<10))
+
 
 /*After reset, access to the Backup registers and RTC is disabled and the Backup domain
 (BKP) is protected against possible parasitic write access. To enable access to the Backup

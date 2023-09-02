@@ -8,6 +8,7 @@
 #include "watchdog.h"
 #include "at_command.h"
 #include "router.h"
+#include "analog_sensor_1.h"
 
 
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
@@ -34,7 +35,8 @@ int main(void)
 	at_command_init();
 	command_line_interface_init();
 	status_led_init();
-	//watchdog_init();
+	watchdog_init();
+	analog_sensor_1_init();
 
 	static_queue_init(NUMBER_OF_QUEUES);
 
@@ -90,7 +92,7 @@ void task_2(void)
 
 void task_3(void)
 {
-	//watchdog_reset();
+	watchdog_reset();
 }
 
 // array with the name of at command functions
