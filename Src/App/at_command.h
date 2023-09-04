@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "modem.h"
+#include "router.h"
 
 typedef struct{
 	uint8_t apn[96];
@@ -37,8 +38,9 @@ typedef enum {
 }socket_state_machine_codes;
 
 void at_command_init(void);
-result_codes at_command_init_server_configuration(void);
-result_codes at_command_init_apn_configuration(void);
+
+result_codes at_command_init_server_configuration(uint8_t* protocol, uint8_t* ip, uint8_t* port);
+result_codes at_command_init_apn_configuration(uint8_t* apn);
 result_codes at_command_reset(void);
 
 result_codes at_command_test(void);

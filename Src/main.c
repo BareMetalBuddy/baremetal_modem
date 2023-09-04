@@ -35,7 +35,7 @@ int main(void)
 	at_command_init();
 	command_line_interface_init();
 	status_led_init();
-	watchdog_init();
+	//watchdog_init();
 	analog_sensor_1_init();
 
 	static_queue_init(NUMBER_OF_QUEUES);
@@ -62,25 +62,10 @@ int main(void)
 /*Helper task.*/
 void task_1(void)
 {
-	Package *package1;
-	Package *package2;
-	Package *package3;
-
-	if((package1 = router_dynamic_fifo_get(0))!=NULL){
-		if(strstr((const char*)package1->data1,(const char*)"set")){
-			printf("%s\n",package1->data1);
-		}
-	}
-
-	if((package2 = router_dynamic_fifo_get(1))!=NULL){
-		if(strstr((const char*)package2->data1,(const char*)"wap.tmovil.cl")){
-			printf("%s\n",package2->data1);
-		}
-	}
-
-	if((package3 = router_dynamic_fifo_get(2))!=NULL){
-		if(strstr((const char*)package3->data1,(const char*)"TCP")){
-			printf("%s\n",package3->data1);
+	Package *package;
+	if((package = router_dynamic_fifo_get(0))!=NULL){
+		if(strstr((const char*)package->data1,(const char*)"set")){
+			task_init(&task[3],200,0,&task_4,UNBLOCKED);
 		}
 	}
 }
@@ -92,7 +77,7 @@ void task_2(void)
 
 void task_3(void)
 {
-	watchdog_reset();
+	//watchdog_reset();
 }
 
 // array with the name of at command functions
@@ -126,13 +111,13 @@ const socket_state_machine_codes lookup_transitions [14][3] = {
 	{at_cgdcont_state,at_creg_state,at_cgatt_state}, 			 	// at_cgatt
 	{at_qnetopen_state,at_creg_state,at_cgdcont_state}, 	 		// at_command_cgdcont
 	{at_wait_new_msg_state,at_netclose_state,at_qnetopen_state},    // at_command_qnetopen
-	{at_netopen_state,at_test_state,at_wait_new_msg_state}, // at_wait_new_msg_state
-	{at_cipopen_state,at_netclose_state,at_netopen_state}, 	// at_netopen_state
-	{at_cipsend_state,at_netclose_state,at_cipopen_state},	// at_cipopen_state
-	{at_send_data_state,at_test_state,at_cipsend_state},    // at_cipsend_state
-	{at_cipclose_state,at_test_state,at_send_data_state},   // at_send_data_state
-	{at_netclose_state,at_test_state,at_cipclose_state},    // at_cipclose_state
-	{at_wait_new_msg_state,at_test_state,at_netclose_state} // at_netclose_state
+	{at_netopen_state,at_test_state,at_wait_new_msg_state}, 		// at_wait_new_msg_state
+	{at_cipopen_state,at_netclose_state,at_netopen_state}, 			// at_netopen_state
+	{at_cipsend_state,at_netclose_state,at_cipopen_state},			// at_cipopen_state
+	{at_send_data_state,at_test_state,at_cipsend_state},    		// at_cipsend_state
+	{at_cipclose_state,at_test_state,at_send_data_state},   	// at_send_data_state
+	{at_netclose_state,at_test_state,at_cipclose_state},    		// at_cipclose_state
+	{at_wait_new_msg_state,at_test_state,at_netclose_state} 		// at_netclose_state
 };
 
 void task_4(void)
@@ -141,8 +126,20 @@ void task_4(void)
 	fun = socket_state_machine[socket_state];
 	rc = fun();
 	socket_state = lookup_transitions[socket_state][rc];
+
+	Package *package;
+	if((package = router_dynamic_fifo_get(3))!=NULL){
+		if(strstr((const char*)package->data1,(const char*)"err:0")){
+			socket_state = at_test_state; // maybe socket_state must go to at_reset_state..
+		}
+	}
 	status_led_toogle();
 }
 
+
+/*err codes:
+ * 0 - error executing at command cipopen
+ *
+ * */
 
 

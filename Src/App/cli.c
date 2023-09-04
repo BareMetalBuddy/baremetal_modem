@@ -46,12 +46,14 @@ void command_line_interface_init(void)
 	// configure interruption
 	nvic_set_irq_priority(2,SERIAL_PORT_1);
 	nvic_enable_irq(SERIAL_PORT_1);
+
+	printf("%s\r","System Init..");
 }
 
 void command_line_interface(void)
 {
 	in = 0;
-	input_data_from_user[in] = '\0';
+	memset(input_data_from_user,0,sizeof(input_data_from_user));
 	while(usart_available(&usart1)>0){
 		input_data_from_user[in] = usart_read(&usart1);
 	    if(input_data_from_user[in] != '\r'){
@@ -109,16 +111,14 @@ void cmd_help(int argc, char *argv[]) {
 /*APN command: used to set access point network*/
 void cmd_apn(int argc, char *argv[])
 {
-	Package pkg;
-
 	if (argc < 2) {
 		printf("Use: set_apn [value]\n");
 		return;
 	}
 	if(strlen(argv[1])>0){
 		printf("apn: %s\n",(char*)argv[1]);
-		pkg.data1 = (uint8_t*)argv[1];
-		router_dynamic_fifo_add(&pkg,1);
+		at_command_init_apn_configuration((uint8_t*)argv[1]);
+
 	}else{
 		printf("error apn value\n");
 	}
@@ -127,19 +127,13 @@ void cmd_apn(int argc, char *argv[])
 /*set connection parameters :protocol address and port*/
 void cmd_connection(int argc, char *argv[])
 {
-	Package pkg;
-
 	if (argc < 4) {
 		printf("Use: set_connection [TCP/UDP] [xxx.xxx.xxx.xxx] [xxxx]\n");
 		return;
 	}
 	if(strlen(argv[1])>0 && strlen(argv[2])>0 && strlen(argv[3])>0){
 		printf("connection: %s %s %s\n",(char*)argv[1],(char*)argv[2],(char*)argv[3]);
-		pkg.data1 = (uint8_t*)argv[1];
-		pkg.data2 = (uint8_t*)argv[2];
-		pkg.data3 = (uint8_t*)argv[3];
-		router_dynamic_fifo_add(&pkg,2);
-
+		at_command_init_server_configuration((uint8_t*)argv[1],(uint8_t*)argv[2],(uint8_t*)argv[3]);
 	}else{
 		printf("error connection parameters");
 	}

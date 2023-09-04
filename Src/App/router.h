@@ -1,4 +1,3 @@
-
 #ifndef APP_ROUTER_H_
 #define APP_ROUTER_H_
 
@@ -26,9 +25,7 @@ typedef struct RouterControl{
 	DinamicFIFOList * create;
 	DinamicFIFOList * status;
 	DinamicFIFOList * monitoring;
-	uint8_t size_create;
-	uint8_t size_status;
-	uint8_t size_monitoring;
+	DinamicFIFOList * connection;
 }RouterControl;
 
 uint8_t router_dynamic_fifo_add(Package * package,uint8_t list);

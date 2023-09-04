@@ -1,16 +1,18 @@
 #include "at_command.h"
 
-static CONFIG_t config;
+CONFIG_t config;
 
-result_codes at_command_init_server_configuration(void)
+result_codes at_command_init_server_configuration(uint8_t* protocol, uint8_t* ip, uint8_t* port)
 {
-	//sprintf(config.server,"AT+CIPOPEN=0,%s,%s,%s\r",1);
+	// TODO: check format incoming data
+	sprintf((char*)config.server,(const char*)"AT+CIPOPEN=0,\"%s\",\"%s\",%s\r",protocol,ip,port);
 	return 1;
 }
 
-result_codes at_command_init_apn_configuration(void)
+result_codes at_command_init_apn_configuration(uint8_t* apn)
 {
-	//sprintf(config.apn,"AT+CGDCONT=1,\"IP\",\"%s\"\r",1);
+	// TODO: check format incoming data
+	sprintf((char*)config.apn,(const char*)"AT+CGDCONT=1,\"IP\",\"%s\", , \r",apn);
 	return 1;
 }
 
@@ -97,7 +99,7 @@ result_codes at_command_wait_new_msg(void)
 /* Start TCPIP service. If the result of operation is 0, is a success, other value is failure.*/
 result_codes at_command_netopen(void)
 {
-	return (modem_at_command_write((uint8_t*)"AT+NETOPEN\r",at_netopen_state,20));
+	return (modem_at_command_write((uint8_t*)"AT+NETOPEN\r",at_netopen_state,60));
 }
 
 /* Setup TCP/UDP client socket connection :
@@ -105,7 +107,7 @@ result_codes at_command_netopen(void)
  * */
 result_codes at_command_cipopen(void)
 {
-	return (modem_at_command_write(config.server,at_cipopen_state,120));
+	return (modem_at_command_write(config.server,at_cipopen_state,220));
 }
 
 /* Send TCP/UDP data with changeable length*/
@@ -116,22 +118,22 @@ result_codes at_command_cipsend(void)
 
 result_codes at_command_send_data(void)
 {
-	return(modem_at_command_write((uint8_t*)"Hello World\x1A\r",at_send_data_state,10));
+	return (modem_at_command_write((uint8_t*)"Hello World\x1A\r",at_send_data_state,20));
 }
 
 result_codes at_command_cipclose(void) // to close TCP client socket connection
 {
-	return 1; (modem_at_command_write((uint8_t*)"AT+CIPCLOSE=0\r",at_cipclose_state,10));
+	return (modem_at_command_write((uint8_t*)"AT+CIPCLOSE=0\r",at_cipclose_state,120));
 }
 
 result_codes at_command_netclose(void) // stop TCPIP service
 {
-	return (modem_at_command_write((uint8_t*)"AT+NETCLOSE\r",at_netclose_state,10));
+	return (modem_at_command_write((uint8_t*)"AT+NETCLOSE\r",at_netclose_state,30));
 }
 
 result_codes at_command_qnetopen(void)
 {
-	return (modem_at_command_write((uint8_t*)"AT+NETOPEN?\r",at_qnetopen_state,10));
+	return (modem_at_command_write((uint8_t*)"AT+NETOPEN?\r",at_qnetopen_state,30));
 }
 
 result_codes at_check_response(uint8_t at_cmd_id,uint8_t* response)
@@ -142,12 +144,7 @@ result_codes at_check_response(uint8_t at_cmd_id,uint8_t* response)
 	{
 	case at_test_state:
 	case at_echo_state:
-	//case at_cgatt_set_state:
 	case at_cgdcont_state:
-	//case at_http_init_state:
-	//case at_http_set_url_state:
-	//case at_http_stop_service_state:
-	case at_send_data_state:
 		if(strstr((const char*)response,(const char*)"OK")){
 			result = OK;
 		}
@@ -210,30 +207,6 @@ result_codes at_check_response(uint8_t at_cmd_id,uint8_t* response)
 		}
 		break;
 
-	/*case at_http_get_request_state:
-		if(strstr((const char*)response,(const char*)"+HTTPACTION: 0,200,30")){
-			result = OK;
-		}
-		else if(strstr((const char*)response,(const char*)"ERROR") || strstr((const char*)response,(const char*)"HTTPACTION: 0,714,0")){
-			result = FAIL;
-		}
-		else{
-			result = WAIT;
-		}
-		break;*/
-
-	/*case at_http_read_content_state:
-		if(strstr((const char*)response,(const char*)"+HTTPREAD: DATA,30")){
-			result = OK;
-		}
-		else if(strstr((const char*)response,(const char*)"ERROR")){
-			result = FAIL;
-		}
-		else{
-			result = WAIT;
-		}
-		break;*/
-
 	case at_wait_new_msg_state: // at_wait_new_msg_state , no parameters to check
 		break;
 
@@ -245,20 +218,32 @@ result_codes at_check_response(uint8_t at_cmd_id,uint8_t* response)
 			result = FAIL;
 		}
 		else{
-			result = WAIT; // in case the result was +NETOPEN but with a value different than zero
+			result = FAIL; // in case the result was +NETOPEN but with a value different than zero
 		}
 		break;
 
 	case at_cipopen_state:
+	{
+		static uint8_t err_0_counter = RESET;
 		if(strstr((const char*)response,(const char*)"+CIPOPEN: 0,0")){
 			result = OK;
+			err_0_counter = RESET;
 		}
 		else if(strstr((const char*)response,(const char*)"+CIPOPEN: 0,1")) {
+			err_0_counter++;
+			if(err_0_counter>=3){
+				Package pkg;
+				pkg.data1 = (uint8_t*)"err:0";
+				router_dynamic_fifo_add(&pkg,3);
+				err_0_counter = RESET;
+			}
+
 			result = FAIL;
 		}
 		else{
 			result = WAIT; 	// if the result of +CIPOPEN is different than zero also must be considerer as an error
 		}
+	}
 		break;
 
 	case at_cipsend_state:
@@ -266,6 +251,18 @@ result_codes at_check_response(uint8_t at_cmd_id,uint8_t* response)
 			result = OK;
 		}
 		else if(strstr((const char*)response,(const char*)"ERROR")) {
+			result = FAIL;
+		}
+		else{
+			result = WAIT;
+		}
+		break;
+
+	case at_send_data_state:
+		if(strstr((const char*)response,(const char*)"+CIPSEND: 0,11,11")){ // TODO: change this
+			result = OK;
+		}
+		else if(strstr((const char*)response,(const char*)"ERROR")){
 			result = FAIL;
 		}
 		else{
